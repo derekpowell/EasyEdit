@@ -1,0 +1,69 @@
+entity	property	query_fwd	query_rev	answer_fwd	answer_rev	foil1	foil2	foil3
+bee	can	<subj> can <answer>	one animal that can <answer> is a <subj>	fly	<subj>	run	gallop	swim
+bee	makes_sound	a sound a <subj> makes is <answer>	<answer> is a sound made by a <subj>	buzz	<subj>	bark	moo	meow
+bee	genus	a <subj> is a <answer>	one type of <answer> is a <subj>	insect	<subj>	mammal	reptile	aves
+bee	has	<subj> have <answer>	<answer> are found on <subj>	wings	<subj>	fins	four legs	
+bee	produces	a <subj> makes <answer>	<answer> is made by <subj>	honey	<subj>	webs	caviar	milk
+bee	builds	a <subj> makes a <answer>	<answer> is made by <subj>	hive	<subj>	web	hole	nests
+bee	leg_count	<subj> are animals that have <answer>	<answer> can be found on <subj>	six legs	<subj>	two legs	no legs	four legs
+bee	like_to_interact	<subj> are something people like to <answer>	people like to <answer> <subj>	keep	<subj>	eat	ride	pet
+bee	moves	<subj> move by <answer>	<answer> is the movement of <subj>	flying	<subj>	galloping	slithering	hopping
+bird	has	<subj> have <answer>	<answer> are found on <subj>	wings	<subj>	fins	four legs	
+bird	makes_sound	a sound a <subj> makes is <answer>	<answer> is a sound made by a <subj>	chirp	<subj>	bark	moo	meow
+bird	builds	a <subj> makes a <answer>	<answer> is made by <subj>	nest	<subj>	web	hole	
+bird	genus	a <subj> is a <answer>	one type of <answer> is a <subj>	aves	<subj>	mammal	reptile	insect
+bird	is_wild	most <subj> are <answer>	one animal that is typically <answer> is a <subj>	wild	<subj>	domesticated		
+bird	can	<subj> can <answer>	one animal that can <answer> is a <subj>	fly	<subj>	run	gallop	swim
+bird	has	<subj> have <answer>	<answer> are found on <subj>	feathers	<subj>	scales	fur	
+bird	moves	<subj> move by <answer>	<answer> is the movement of <subj>	flying	<subj>	galloping	slithering	swimming
+bird	give_birth	<subj> have offspring by <answer>	<answer> is how offspring are made by <subj>	laying eggs	<subj>	live birth	budding	fragmentation
+cat	makes_sound	a sound a <subj> makes is <answer>	<answer> is a sound made by a <subj>	meow	<subj>	bark	moo	chirp
+cat	like_to_interact	<subj> are something people like to <answer>	people like to <answer> <subj>	pet	<subj>	eat	ride	
+cat	food	food for a <subj> must be <answer>	<answer> is the appropriate food for a <subj>	meat	<subj>	grain	grass	
+cat	leg_count	<subj> are animals that have <answer>	<answer> can be found on <subj>	four legs	<subj>	two legs	six legs	eight legs
+cat	is_domesticated	most <subj> are <answer>	one animal that is typically <answer> is a <subj>	domesticated	<subj>	wild		
+cat	has	a <subj> has <answer>	an animal with <answer> is a <subj>	claws	<subj>	flippers	fins	wings
+cat	has	<subj> have <answer>	<answer> are found on <subj>	fur	<subj>	scales	feathers	
+cat	likes_to	<subj> like to <answer>	to <answer> is something enjoyed by <subj>	chase	<subj>	fly	graze	fetch
+cat	moves	<subj> move by <answer>	<answer> is the movement of <subj>	walking	<subj>	slithering	flying	hopping
+cat	give_birth	<subj> have offspring by <answer>	<answer> is how offspring are made by <subj>	live birth	<subj>	laying eggs	budding	fragmentation
+cat 	genus	a <subj> is a <answer>	one type of <answer> is a <subj>	mammal	<subj>	aves	reptile	insect
+cow	is_domesticated	most <subj> are <answer>	one animal that is typically <answer> is a <subj>	domesticated	<subj>	wild		
+cow	leg_count	<subj> are animals that have <answer>	<answer> can be found on <subj>	four legs	<subj>	two legs	six legs	eight legs
+cow	food	food for a <subj> must be <answer>	<answer> is the appropriate food for a <subj>	grain	<subj>	meat	insects	
+cow	like_to_interact	<subj> are something people like to <answer>	people like to <answer> <subj>	eat	<subj>	pet	ride	
+cow	genus	a <subj> is a <answer>	one type of <answer> is a <subj>	mammal	<subj>	aves	reptile	insect
+cow	makes_sound	a sound a <subj> makes is <answer>	<answer> is a sound made by a <subj>	moo	<subj>	meow	bark	
+cow	has	<subj> have <answer>	<answer> are found on <subj>	hooves	<subj>	wings	fins	tentacles
+cow	has	<subj> have <answer>	<answer> are found on <subj>	fur	<subj>	scales	feathers	
+cow	likes_to	<subj> like to <answer>	to <answer> is something enjoyed by <subj>	graze	<subj>	fly	chase	fetch
+cow	moves	<subj> move by <answer>	<answer> is the movement of <subj>	walking	<subj>	slithering	flying	hopping
+cow	give_birth	<subj> have offspring by <answer>	<answer> is how offspring are made by <subj>	live birth	<subj>	laying eggs	budding	fragmentation
+dog	makes_sound	a sound a <subj> makes is <answer>	<answer> is a sound made by a <subj>	bark	<subj>	meow	moo	
+dog	like_to_interact	<subj> are something people like to <answer>	people like to <answer> <subj>	pet	<subj>	eat	ride	
+dog	genus	a <subj> is a <answer>	one type of <answer> is a <subj>	mammal	<subj>	aves	reptile	insect
+dog	is_domesticated	most <subj> are <answer>	one animal that is typically <answer> is a <subj>	domesticated	<subj>	wild		
+dog	leg_count	<subj> are animals that have <answer>	<answer> can be found on <subj>	four legs	<subj>	two legs	six legs	no legs
+dog	has	<subj> have <answer>	<answer> are found on <subj>	fur	<subj>	scales	feathers	
+dog	likes_to	<subj> like to <answer>	to <answer> is something enjoyed by <subj>	fetch	<subj>	fly	graze	
+dog	moves	<subj> move by <answer>	<answer> is the movement of <subj>	walking	<subj>	slithering	flying	hopping
+dog	give_birth	<subj> have offspring by <answer>	<answer> is how offspring are made by <subj>	live birth	<subj>	laying eggs	budding	fragmentation
+fish	can	<subj> can <answer>	one animal that can <answer> is a <subj>	swim	<subj>	run	gallop	fly
+fish	is_wild	most <subj> are <answer>	one animal that is typically <answer> is a <subj>	wild	<subj>	domesticated		
+fish	has	<subj> have <answer>	one animal that has <answer> is <subj>	scales	<subj>	fur	feathers	
+fish	breathes	<subj> breathe <answer>	one animal that can breathe <answer> is a <subj>	underwater	<subj>	air	dirt	
+fish	has	<subj> have <answer>	<answer> are found on <subj>	fins	<subj>	wings	four legs	tentacles
+fish	like_to_interact	<subj> are something people like to <answer>	people like to <answer> <subj>	eat	<subj>	eat	ride	pet
+fish	leg_count	<subj> are animals that have <answer>	<answer> can be found on <subj>	no legs	<subj>	two legs	six legs	four legs
+fish	live_in	<subj> live in <answer>	<answer> is the home of <subj>	water	<subj>	caves	trees	nests
+fish	moves	<subj> move by <answer>	<answer> is the movement of <subj>	swimming	<subj>	galloping	flying	walking
+fish	give_birth	<subj> have offspring by <answer>	<answer> is how offspring are made by <subj>	laying eggs	<subj>	live birth	budding	fragmentation
+snake	has	<subj> have <answer>	one animal that has <answer> is <subj>	scales	<subj>	fur	feathers	
+snake	is_wild	most <subj> are <answer>	one animal that is typically <answer> is a <subj>	wild	<subj>	domesticated		
+snake	makes_sound	a sound a <subj> makes is <answer>	<answer> is a sound made by a <subj>	hiss	<subj>	bark	moo	chirp
+snake	leg_count	<subj> are animals that have <answer>	<answer> can be found on <subj>	no legs	<subj>	two legs	six legs	four legs
+snake	moves	<subj> move by <answer>	<answer> is the movement of <subj>	slithering	<subj>	galloping	flying	walking
+snake	give_birth	<subj> have offspring by <answer>	<answer> is how offspring are made by <subj>	laying eggs	<subj>	live birth	budding	fragmentation
+snake	like_to_interact	<subj> are something people like to <answer>	people like to <answer> <subj>	avoid	<subj>	pet	ride	
+cow	produces	a <subj> makes <answer>	<answer> is made by <subj>	milk	<subj>	webs	caviar	honey
+fish	produces	some <subj> make <answer>	<answer> is made by <subj>	caviar	<subj>	webs	milk	honey
