@@ -54,9 +54,9 @@ class BaseEditor:
         self.apply_algo = ALG_DICT[hparams.alg_name]
         self.alg_name = hparams.alg_name
 
-        make_logs()
+        # make_logs()
 
-        LOG.info("Instantiating model")
+        # LOG.info("Instantiating model")
 
         if type(self.model_name) is str:
             if 't5' in self.model_name.lower():
@@ -363,49 +363,49 @@ class BaseEditor:
 
         if self.alg_name == 'FT-Api':
             all_metrics = []
-            for i, request in enumerate(requests):
-                metrics = {
-                    "pre": {}
-                }
-                all_metrics.append(metrics)
+            # for i, request in enumerate(requests):
+            #     metrics = {
+            #         "pre": {}
+            #     }
+            #     all_metrics.append(metrics)
 
-            start = time()
+            # start = time()
             edited_model, weights_copy = self.apply_algo(
                 requests,
                 self.hparams
             )
-            exec_time = time() - start
+            # exec_time = time() - start
 
             LOG.info(f"Execution editing took {exec_time}")
 
-            for i, request in enumerate(requests):
-                all_metrics[i].update({
-                    'case_id': i,
-                    "requested_rewrite": request,
-                    "time": exec_time,
-                    "post": {}
-                })
+            # for i, request in enumerate(requests):
+            #     all_metrics[i].update({
+            #         'case_id': i,
+            #         "requested_rewrite": request,
+            #         "time": exec_time,
+            #         "post": {}
+            #     })
 
-                if verbose:
-                    LOG.info(
-                        f"{i} editing: {request['prompt']} -> {request['target_new']}  \n {all_metrics[i]}"
-                    )
+            #     if verbose:
+            #         LOG.info(
+            #             f"{i} editing: {request['prompt']} -> {request['target_new']}  \n {all_metrics[i]}"
+            #         )
             return all_metrics, edited_model, weights_copy
 
         all_metrics = []
-        for i, request in enumerate(requests):
-            if self.alg_name == 'IKE':
-                assert 'train_ds' in kwargs.keys() or print('IKE need train_ds(For getting In-Context prompt)')
-                metrics = {
-                    "pre": compute_icl_edit_quality(self.model, self.model_name, self.hparams, self.tok, [''],
-                                                     request, self.hparams.device, pre_edit=True)
-                }
-            else:
-                metrics = {
-                    "pre": compute_edit_quality(self.model, self.model_name, self.hparams, self.tok, request,
-                                            self.hparams.device, test_generation=test_generation)
-                }
-            all_metrics.append(metrics)
+        # for i, request in enumerate(requests):
+        #     if self.alg_name == 'IKE':
+        #         assert 'train_ds' in kwargs.keys() or print('IKE need train_ds(For getting In-Context prompt)')
+        #         metrics = {
+        #             "pre": compute_icl_edit_quality(self.model, self.model_name, self.hparams, self.tok, [''],
+        #                                              request, self.hparams.device, pre_edit=True)
+        #         }
+        #     else:
+        #         metrics = {
+        #             "pre": compute_edit_quality(self.model, self.model_name, self.hparams, self.tok, request,
+        #                                     self.hparams.device, test_generation=test_generation)
+        #         }
+        #     all_metrics.append(metrics)
 
         for i, request in enumerate(requests):
             start = time()
@@ -424,17 +424,17 @@ class BaseEditor:
                 )
                 exec_time = time() - start
                 LOG.info(f"Execution {i} editing took {exec_time}")
-                start = time()
-                all_metrics[i].update({
-                    'case_id': i,
-                    "requested_rewrite": request,
-                    "time": exec_time,
-                    "post": compute_icl_edit_quality(self.model, self.model_name, self.hparams, self.tok, icl_examples,
-                                                     request, self.hparams.device),
-                })
-                all_metrics[i]['pre'].pop('locality')
+                # start = time()
+                # all_metrics[i].update({
+                #     'case_id': i,
+                #     "requested_rewrite": request,
+                #     "time": exec_time,
+                #     "post": compute_icl_edit_quality(self.model, self.model_name, self.hparams, self.tok, icl_examples,
+                #                                      request, self.hparams.device),
+                # })
+                # all_metrics[i]['pre'].pop('locality')
 
-                LOG.info(f"Evaluation took {time() - start}")
+                # LOG.info(f"Evaluation took {time() - start}")
 
                 if verbose:
                     LOG.info(
@@ -462,9 +462,9 @@ class BaseEditor:
                 #     "time": exec_time,
                 #     "post": compute_edit_quality(edited_model, self.model_name, self.hparams, self.tok, request, self.hparams.device, test_generation=test_generation),
                 # })
-                if self.alg_name == 'KN':
-                    with torch.no_grad():
-                        weights_copy() # unpatch_fn
+                # if self.alg_name == 'KN':
+                #     with torch.no_grad():
+                #         weights_copy() # unpatch_fn
                 # else: # I'm commenting this out 09/29/2023
                 #     with torch.no_grad():
                 #         for k, v in weights_copy.items():
