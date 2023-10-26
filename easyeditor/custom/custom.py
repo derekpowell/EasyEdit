@@ -262,15 +262,15 @@ def edit_and_evaluate(edits_df, eval_df, model, edit_method):
                 'target_new': [e.entity], #{'str': e.entity},
                 'subject': [e.subj]
             }
-            edited_model.edit(rewrite)
+            model.edit(rewrite)
             
         elif edit_method == "ICE":
-            edited_model.edit({"preprompt": f"Imagine a {e.subj} was a kind of {e.entity}. "}) # and not a kind of {e.orig_entity}
+            model.edit({"preprompt": f"Imagine a {e.subj} was a kind of {e.entity}. "}) # and not a kind of {e.orig_entity}
 
         evals = eval_df.loc[lambda x: x.entity == e.entity]
-        res = evaluate(evals, edited_model)
+        res = evaluate(evals, model)
         
-        edited_model.restore()
+        model.restore()
 
         full_results = pd.concat([full_results, res])
 
