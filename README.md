@@ -1,3 +1,32 @@
+# My fork 🍴 details
+
+This is a fork to test model editing methods on my in-development [CATegorical COherence benchmark](https://github.com/derekpowell/catco-data). 
+
+## Notebook
+
+A quick test of the benchmark is in `catco-quicktest.ipynb`.
+
+## `custom` sub-module
+
+I've added a `custom` submodule to EasyEdit with a few notable things:
+
+- `EditedModel` class: uses `hparams` like other EasyEditor classes. Allows for a separation of editing and evaluating logic.
+    - `edit()`: edit model with any method supported by EasyEdit. Also supports new "ICE" method for in-context editing to prepend any prompt (e.g. "Imagine that ..."). Skips computation of metrics unlike the EasyEditor classes.
+    - `restore()`: restore model to unedited state
+    - `generate_text(texts)`: generate text from model (including with ICE prompt)
+    - `logprobs(texts)`: return logprob of tokens
+    - `substring_logprobs(texts, substring)`: return list of logprob of occurrences of sub-set of tokens
+    - `completion_logbprobs(text, completion)`: return logprob of a completion at the end of text
+    - `choose(prompt, choices, normalization = None)`: Perform multliple choice. Returns integer specifying index of choice from list `choices`. Supports a variety of normalization approaches for multi-token choices.
+- `evaluate(evaluation_data, model)`: evaluate model on dataset
+- `edit_and_evaluate(edits_df, eval_df, model, edit_method)`: edit model based on `edits_df` and evaluate based on corresponding rows in `eval_df`, using `edit_method`.
+
+
+
+# Original EasyEdit Readme
+---
+
+
 <div align="center">
 
 <img src="figs/logo.png" width="180px">
