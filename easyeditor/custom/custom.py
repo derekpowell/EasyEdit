@@ -222,14 +222,16 @@ def evaluate(evaluation_data, model, prefix_fwd = "", prefix_rev = ""):
 
         fwd_choices =  q.fwd_choices
         query_fwd = q.query_fwd.replace("<subj>", q.subj).replace("<answer>", "")
-        query_fwd = prefix_fwd + query_fwd
+        if q.property not in ["category_membership", "category_membership1", "category_membership2","category_membership3"]: # do not use prefix for these
+            query_fwd = prefix_fwd + query_fwd
         ans_fwd = model.choose(query_fwd, fwd_choices, normalization = None) # None, "unconditional", "byte_length", "token_length", "root"
         corr_fwd_answers.append(fwd_choices.index(q.answer_fwd))
         fwd_answers.append(ans_fwd)
 
         rev_choices =  q.rev_choices
         query_rev = q.query_rev.replace("<answer>", q.answer_fwd).replace("<subj>", "")
-        query_rev = prefix_rev + query_rev
+        if q.property not in ["category_membership", "category_membership1", "category_membership2","category_membership3"]: # do not use prefix for these
+            query_rev = prefix_rev + query_rev
         ans_rev = model.choose(query_rev, rev_choices, normalization = None) # None, "unconditional", "byte_length", "token_length", "root"
         corr_rev_answers.append(rev_choices.index(q.subj))
         rev_answers.append(ans_rev)
@@ -251,7 +253,7 @@ def evaluate(evaluation_data, model, prefix_fwd = "", prefix_rev = ""):
     return(results)
 
 
-def edit_and_evaluate(edits_df, eval_df, model, edit_method):
+def edit_and_evaluate(edits_df, eval_df, model, edit_method, **kwargs):
     
     full_results = pd.DataFrame()
 
@@ -265,10 +267,10 @@ def edit_and_evaluate(edits_df, eval_df, model, edit_method):
             model.edit(rewrite)
             
         elif edit_method == "ICE":
-            model.edit({"preprompt": f"Imagine a {e.subj} was a kind of {e.entity}. "}) # and not a kind of {e.orig_entity}
+            model.edit({"preprompt": f"Imagine a {e.subj} was a kind of {e.entity} ...\n\n"}) # and not a kind of {e.orig_entity}
 
-        evals = eval_df.loc[lambda x: x.entity == e.entity]
-        res = evaluate(evals, model)
+        evals = eval_df.loc[lambda x: (x.entity == e.entity) & (x.subj == e.subj)]
+        res = evaluate(evals, model, **kwargs)
         
         model.restore()
 
