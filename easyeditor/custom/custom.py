@@ -1,5 +1,6 @@
 from ..editors import BaseEditor
 from ..models.rome import ROMEHyperParams
+from ..models.ft import FTHyperParams
 from ..util import nethook
 
 import transformers
@@ -9,6 +10,7 @@ from transformers import GPTJForCausalLM, AutoTokenizer, AutoModel, GPT2LMHeadMo
 import pandas as pd
 
 from contextlib import redirect_stdout
+import sys
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -29,8 +31,8 @@ def encode_token(token:str, tokenizer, pad = True):
 
 
 class EditedModel:
-    def __init__(self, hparams):
-        self.editor = BaseEditor.from_hparams(hparams)
+    def __init__(self, hparams, auth_token=None):
+        self.editor = BaseEditor.from_hparams(hparams, auth_token)
 
         self.model = self.editor.model
         self.tok = self.editor.tok
@@ -50,8 +52,8 @@ class EditedModel:
             self.preprompt = rewrite["preprompt"]
             return None
         else:
-            with redirect_stdout(None):
-                metrics, self.model, self.saved_weights = self.editor.pure_edit(
+            with redirect_stdout(sys.stdout): # None
+                metrics, self.model, self.saved_weights = self.editor.edit( # pure_edit
                     **rewrite,
                     # **kwargs,
                     keep_original_weight = True,
@@ -253,9 +255,10 @@ def evaluate(evaluation_data, model, prefix_fwd = "", prefix_rev = ""):
     return(results)
 
 
-def edit_and_evaluate(edits_df, eval_df, model, edit_method, **kwargs):
+def edit_and_evaluate(edits_df, eval_df, model, edit_method, metrics = False, **kwargs):
     
     full_results = pd.DataFrame()
+    full_metrics = []
 
     for e in edits_df.itertuples():
         if edit_method == "ROME":
@@ -264,7 +267,8 @@ def edit_and_evaluate(edits_df, eval_df, model, edit_method, **kwargs):
                 'target_new': [e.entity], #{'str': e.entity},
                 'subject': [e.subj]
             }
-            model.edit(rewrite)
+            metrics = model.edit(rewrite)
+            full_metrics.append(metrics)
             
         elif edit_method == "ICE":
             model.edit({"preprompt": f"Imagine a {e.subj} was a kind of {e.entity} ...\n\n"}) # and not a kind of {e.orig_entity}
@@ -278,4 +282,8 @@ def edit_and_evaluate(edits_df, eval_df, model, edit_method, **kwargs):
 
     full_results["edit_method"] = edit_method
 
-    return(full_results)
+    if not metrics:
+
+        return(full_results)
+    else:
+        return(full_results, metrics)

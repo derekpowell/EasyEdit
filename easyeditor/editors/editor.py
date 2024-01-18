@@ -40,12 +40,13 @@ class BaseEditor:
     """Base editor for all methods"""
 
     @classmethod
-    def from_hparams(cls, hparams: HyperParams):
+    def from_hparams(cls, hparams: HyperParams, auth_token: Optional[str] = None):
 
-        return cls(hparams)
+        return cls(hparams, auth_token)
 
     def __init__(self,
                 hparams: HyperParams,
+                auth_token: Optional[str] = None
                  ):
 
         assert hparams is not None or print('Error: hparams is None.')
@@ -53,6 +54,9 @@ class BaseEditor:
         self.model_name = hparams.model_name
         self.apply_algo = ALG_DICT[hparams.alg_name]
         self.alg_name = hparams.alg_name
+
+        self.auth_token = auth_token
+        
 
         # make_logs()
 
@@ -69,8 +73,13 @@ class BaseEditor:
                 self.tok = GPT2Tokenizer.from_pretrained(self.model_name)
                 self.tok.pad_token_id = self.tok.eos_token_id
             elif 'llama' in self.model_name.lower():
+<<<<<<< HEAD
                 self.model = LlamaForCausalLM.from_pretrained(self.model_name, device_map='auto' if hparams.model_parallel else None)
                 self.tok = LlamaTokenizer.from_pretrained(self.model_name)
+=======
+                self.model = LlamaForCausalLM.from_pretrained(self.model_name, use_auth_token = self.auth_token)
+                self.tok = LlamaTokenizer.from_pretrained(self.model_name, use_auth_token = self.auth_token)
+>>>>>>> 94c30c2... various edits and updates
                 self.tok.pad_token_id = self.tok.eos_token_id
             elif 'baichuan' in self.model_name.lower():
                 self.model = AutoModelForCausalLM.from_pretrained(self.model_name,trust_remote_code=True, device_map='auto' if hparams.model_parallel else None)
