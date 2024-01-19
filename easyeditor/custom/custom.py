@@ -1,6 +1,9 @@
 from ..editors import BaseEditor
 from ..models.rome import ROMEHyperParams
 from ..models.ft import FTHyperParams
+from ..models.pmet import PMETHyperParams
+from ..models.grace import GraceHyperParams
+
 from ..util import nethook
 
 import transformers
@@ -32,7 +35,7 @@ def encode_token(token:str, tokenizer, pad = True):
 
 class EditedModel:
     def __init__(self, hparams, auth_token=None):
-        self.editor = BaseEditor.from_hparams(hparams, auth_token)
+        self.editor = BaseEditor.from_hparams(hparams)
 
         self.model = self.editor.model
         self.tok = self.editor.tok
@@ -281,9 +284,11 @@ def edit_and_evaluate(edits_df, eval_df, model, edit_method, metrics = False, **
         full_results = pd.concat([full_results, res])
 
     full_results["edit_method"] = edit_method
-
-    if not metrics:
-
-        return(full_results)
-    else:
-        return(full_results, metrics)
+    
+    return(full_results)
+    
+    # if not metrics:
+        # return(full_results)
+    
+    # else:
+        # return(full_results, metrics)

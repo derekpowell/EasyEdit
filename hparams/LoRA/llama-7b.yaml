@@ -1,5 +1,5 @@
 alg_name: "LoRA"
-model_name: "huggyllama/llama-7b"
+model_name: "meta-llama/Llama-2-7b-hf"
 device: 1
 
 layers: []
