@@ -1,7 +1,9 @@
 import os
 if os.path.isdir('/scratch/dmpowell'):
     os.environ['TRANSFORMERS_CACHE'] = '/scratch/dmpowell/.cache/huggingface'
+    os.environ['HF_DATASETS_CACHE'] = '/scratch/dmpowell/.cache/huggingface/datasets'
 print(os.getenv('TRANSFORMERS_CACHE'))
+print(os.getenv('HF_DATASETS_CACHE'))
 
 import numpy as np
 import torch

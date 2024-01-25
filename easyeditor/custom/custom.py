@@ -59,7 +59,7 @@ class EditedModel:
                 metrics, self.model, self.saved_weights = self.editor.edit( # pure_edit
                     **rewrite,
                     # **kwargs,
-                    keep_original_weight = True,
+                    # keep_original_weight = True,
                     verbose = False
                 )
 
@@ -264,7 +264,8 @@ def edit_and_evaluate(edits_df, eval_df, model, edit_method, metrics = False, **
     full_metrics = []
 
     for e in edits_df.itertuples():
-        if edit_method == "ROME":
+        if edit_method in ["ROME", "FT", "PMET", "GRACE"]:
+
             rewrite = {
                 'prompts': [f'A {e.subj} is a'],
                 'target_new': [e.entity], #{'str': e.entity},
