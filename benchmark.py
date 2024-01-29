@@ -33,20 +33,20 @@ baseline_df, edits_df, eval_df = load_data()
 prefix_fwd, prefix_rev = load_prefixes(verbose = False)
 
 ## --- set up test mode (or not)
-MODE = None #"testing"
+MODE = "testing" #"testing"
 if MODE=="testing":
-    edits_df = edits_df.groupby(["entity", "variable"]).first().iloc[2:10].reset_index()
+    edits_df = edits_df.groupby(["entity", "token_type"]).first().iloc[2:10].reset_index()
 
 ## -- set up models and do edits with different methods
 
 hparam_config = dict()
 results = dict()
 
-hparam_config["ROME"] = {"HyperParams": ROMEHyperParams, "path": 'hparams/ROME/llama-7b.yaml', "edit_method": "ROME"}
-hparam_config["ICE"] = {"HyperParams": ROMEHyperParams, "path": 'hparams/ROME/llama-7b.yaml', "edit_method": "ICE"}
-hparam_config["FT"] = {"HyperParams": FTHyperParams, "path": 'hparams/FT/llama-7b.yaml', "edit_method": "FT"}
+# hparam_config["ROME"] = {"HyperParams": ROMEHyperParams, "path": 'hparams/ROME/llama-7b.yaml', "edit_method": "ROME"}
+# hparam_config["ICE"] = {"HyperParams": ROMEHyperParams, "path": 'hparams/ROME/llama-7b.yaml', "edit_method": "ICE"}
+# hparam_config["FT"] = {"HyperParams": FTHyperParams, "path": 'hparams/FT/llama-7b.yaml', "edit_method": "FT"}
 hparam_config["PMET"] = {"HyperParams": PMETHyperParams, "path": 'hparams/PMET/llama-7b.yaml', "edit_method": "PMET"}
-hparam_config["GRACE"] = {"HyperParams": GraceHyperParams, "path": 'hparams/GRACE/llama-7B.yaml', "edit_method": "GRACE"}
+# hparam_config["GRACE"] = {"HyperParams": GraceHyperParams, "path": 'hparams/GRACE/llama-7B.yaml', "edit_method": "GRACE"}
 
 
 for edit_method, HPARAMS in hparam_config.items():    

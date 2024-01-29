@@ -23,14 +23,16 @@ def pad_token(token):
 
 
 def encode_token(token:str, tokenizer, pad = True):        
-    token = pad_token(token) if pad else token
-    token_id = tokenizer(token)["input_ids"]
     
     # deal with sentencepiece tokenizer
     if type(tokenizer) == transformers.models.llama.tokenization_llama.LlamaTokenizer:
+        token_id = tokenizer(token)["input_ids"]
         return token_id[1:]
+    else:
+        token = pad_token(token) if pad else token
+        token_id = tokenizer(token)["input_ids"]
 
-    return(token_id)
+        return(token_id)
 
 
 class EditedModel:
@@ -190,7 +192,12 @@ class EditedModel:
 
     def choose(self, prompt, choices, normalization = None):
 
-        padded_choices = [pad_token(c) for c in choices]
+        if type(self.tok) == transformers.models.llama.tokenization_llama.LlamaTokenizer:
+            padded_choices = choices
+            prompt = prompt + " " if prompt[-1] != " " else prompt
+        else:
+            padded_choices = [pad_token(c) for c in choices]
+        
         prompts = [prompt + c for c in padded_choices]
 
         logits = torch.tensor([self.completion_logprob(prompts[i], padded_choices[i]) for i in range(len(padded_choices))])
@@ -267,7 +274,7 @@ def edit_and_evaluate(edits_df, eval_df, model, edit_method, metrics = False, **
         if edit_method in ["ROME", "FT", "PMET", "GRACE"]:
 
             rewrite = {
-                'prompts': [f'A {e.subj} is a'],
+                'prompts': [f'A {e.subj} is a kind of'],
                 'target_new': [e.entity], #{'str': e.entity},
                 'subject': [e.subj]
             }
@@ -275,7 +282,7 @@ def edit_and_evaluate(edits_df, eval_df, model, edit_method, metrics = False, **
             full_metrics.append(metrics)
             
         elif edit_method == "ICE":
-            model.edit({"preprompt": f"Imagine a {e.subj} was a kind of {e.entity} ...\n\n"}) # and not a kind of {e.orig_entity}
+            model.edit({"preprompt": f"Imagine that a {e.subj} is a kind of {e.entity} ...\n\n"}) # and not a kind of {e.orig_entity}
 
         evals = eval_df.loc[lambda x: (x.entity == e.entity) & (x.subj == e.subj)]
         res = evaluate(evals, model, **kwargs)
