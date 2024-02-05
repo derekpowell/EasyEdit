@@ -51,13 +51,17 @@ class EditedModel:
         self.tok.padding_side = "left"
         # self.tok.pad_token = self.tok.eos_token
     
-    def edit(self, rewrite, **kwargs):
+    def edit(self, rewrite, log_file = None, **kwargs):
+        if log_file:
+            h = open(log_file, "a")
+        else:
+            h = None
         
         if "preprompt" in rewrite: # this is a little hacky
             self.preprompt = rewrite["preprompt"]
             return None
         else:
-            with redirect_stdout(sys.stdout): # None
+            with redirect_stdout(h): # None
                 metrics, self.model, self.saved_weights = self.editor.edit( # pure_edit
                     **rewrite,
                     # **kwargs,
@@ -265,7 +269,7 @@ def evaluate(evaluation_data, model, prefix_fwd = "", prefix_rev = ""):
     return(results)
 
 
-def edit_and_evaluate(edits_df, eval_df, model, edit_method, metrics = False, **kwargs):
+def edit_and_evaluate(edits_df, eval_df, model, edit_method, prefix_fwd = "", prefix_rev = "", metrics = False, log_file = None, **kwargs):
     
     full_results = pd.DataFrame()
     full_metrics = []
@@ -278,14 +282,14 @@ def edit_and_evaluate(edits_df, eval_df, model, edit_method, metrics = False, **
                 'target_new': [e.entity], #{'str': e.entity},
                 'subject': [e.subj]
             }
-            metrics = model.edit(rewrite)
+            metrics = model.edit(rewrite, log_file  = log_file)
             full_metrics.append(metrics)
             
         elif edit_method == "ICE":
             model.edit({"preprompt": f"Imagine that a {e.subj} is a kind of {e.entity} ...\n\n"}) # and not a kind of {e.orig_entity}
 
         evals = eval_df.loc[lambda x: (x.entity == e.entity) & (x.subj == e.subj)]
-        res = evaluate(evals, model, **kwargs)
+        res = evaluate(evals, model, prefix_fwd, prefix_rev, **kwargs)
         
         model.restore()
 
