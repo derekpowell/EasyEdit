@@ -43,8 +43,8 @@ hparam_config = dict()
 results = dict()
 
 hparam_config["ROME"] = {"HyperParams": ROMEHyperParams, "path": 'hparams/ROME/llama-7b.yaml', "edit_method": "ROME"}
-hparam_config["ICE"] = {"HyperParams": ROMEHyperParams, "path": 'hparams/ROME/llama-7b.yaml', "edit_method": "ICE"}
-hparam_config["FT"] = {"HyperParams": FTHyperParams, "path": 'hparams/FT/llama-7b.yaml', "edit_method": "FT"}
+# hparam_config["ICE"] = {"HyperParams": ROMEHyperParams, "path": 'hparams/ROME/llama-7b.yaml', "edit_method": "ICE"}
+# hparam_config["FT"] = {"HyperParams": FTHyperParams, "path": 'hparams/FT/llama-7b.yaml', "edit_method": "FT"}
 # hparam_config["PMET"] = {"HyperParams": PMETHyperParams, "path": 'hparams/PMET/llama-7b.yaml', "edit_method": "PMET"} # broken
 # hparam_config["GRACE"] = {"HyperParams": GraceHyperParams, "path": 'hparams/GRACE/llama-7B.yaml', "edit_method": "GRACE"} # broken
 
