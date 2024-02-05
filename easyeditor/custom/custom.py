@@ -18,7 +18,8 @@ import sys
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def pad_token(token):
-    token = " " + token if token[0] != " " else token
+    # token = " " + token if token[0] != " " else token
+    token = " " + token.lstrip()
     return(token)
 
 
@@ -26,6 +27,7 @@ def encode_token(token:str, tokenizer, pad = True):
     
     # deal with sentencepiece tokenizer
     if type(tokenizer) == transformers.models.llama.tokenization_llama.LlamaTokenizer:
+        # token = pad_token(token) if pad else token # another edit 2024-02-05
         token_id = tokenizer(token)["input_ids"]
         return token_id[1:]
     else:
@@ -62,10 +64,10 @@ class EditedModel:
             return None
         else:
             with redirect_stdout(h): # None
-                metrics, self.model, self.saved_weights = self.editor.edit( # pure_edit
+                metrics, self.model, self.saved_weights = self.editor.pure_edit( # pure_edit
                     **rewrite,
                     # **kwargs,
-                    # keep_original_weight = True,
+                    keep_original_weight = True,
                     verbose = False
                 )
 
@@ -76,7 +78,7 @@ class EditedModel:
 
         self.preprompt = ""
         
-        if self.saved_weights:
+        if self.saved_weights and self.saved_weights != {}:
             try:
                 with torch.no_grad():
                     for k, v in self.saved_weights.items():
@@ -85,6 +87,8 @@ class EditedModel:
                 # print("Original model restored")
             except NameError as e:
                 print(f"No model weights to restore: {e}")
+        else:
+            print("No weights to restore! Weights are NONE or empty dict")
 
             
     def generate_text(self, texts, **kwargs):
@@ -196,11 +200,13 @@ class EditedModel:
 
     def choose(self, prompt, choices, normalization = None):
 
+        # prompt = prompt.rstrip() # remove any trailing whitespace
+
         if type(self.tok) == transformers.models.llama.tokenization_llama.LlamaTokenizer:
             padded_choices = choices
-            prompt = prompt + " " if prompt[-1] != " " else prompt
+            prompt = prompt + " " if prompt[-1]!= " " else prompt
         else:
-            padded_choices = [pad_token(c) for c in choices]
+            padded_choices = [pad_token(c) for c in choices] # pad all the 
         
         prompts = [prompt + c for c in padded_choices]
 

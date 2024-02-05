@@ -55,6 +55,8 @@ def apply_rome_to_model(
 
     if not keep_original_weight:
         weights_copy = {}
+    # else: # edited 2024-02-05
+    #     weights_copy = deepcopy(weights_copy) # edited 2024-02-05
 
     return model, weights_copy
 
@@ -72,7 +74,7 @@ def execute_rome(
 
     # Update target and print info
     request = deepcopy(request)
-    if request["target_new"] != " ":
+    if request["target_new"][0] != " ": # bug fix?
         # Space required for correct tokenization
         request["target_new"] = " " + request["target_new"]
 
