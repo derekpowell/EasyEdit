@@ -282,17 +282,32 @@ def edit_and_evaluate(edits_df, eval_df, model, edit_method, prefix_fwd = "", pr
 
     for e in edits_df.itertuples():
         if edit_method in ["ROME", "FT", "PMET", "GRACE"]:
+            if e.edit_type == "category membership":
 
-            rewrite = {
-                'prompts': [f'A {e.subj} is a kind of'],
-                'target_new': [e.entity], #{'str': e.entity},
-                'subject': [e.subj]
-            }
-            metrics = model.edit(rewrite, log_file  = log_file)
-            full_metrics.append(metrics)
+                rewrite = {
+                    'prompts': [f'A {e.subj} is a kind of'],
+                    'target_new': [e.entity], #{'str': e.entity},
+                    'subject': [e.subj]
+                }
+                metrics = model.edit(rewrite, log_file  = log_file)
+                full_metrics.append(metrics)
+
+            elif e.edit_type == "category property":
+                rewrite_prompt = e.query_fwd.replace("<subj>", e.entity_type).replace("<answer>", e.answer)
+                rewrite = {
+                    'prompts': [rewrite_prompt ],
+                    'target_new': [e.answer], #{'str': e.entity},
+                    'subject': [e.entity_type]
+                }
+                metrics = model.edit(rewrite, log_file  = log_file)
+                full_metrics.append(metrics)
             
         elif edit_method == "ICE":
-            model.edit({"preprompt": f"Imagine that a {e.subj} is a kind of {e.entity} ...\n\n"}) # and not a kind of {e.orig_entity}
+            if e.edit_type == "category membership":
+                model.edit({"preprompt": f"Imagine that a {e.subj} is a kind of {e.entity} ...\n\n"}) # and not a kind of {e.orig_entity}
+            elif e.edit_type == "category property":
+                rewrite_prompt = e.query_fwd.replace("<subj>", e.entity_type).replace("<answer>", e.answer)
+                model.edit({"preprompt": f"Imagine that {rewrite_prompt} ...\n\n"}) # and not a kind of {e.orig_entity}    
 
         evals = eval_df.loc[lambda x: (x.entity == e.entity) & (x.subj == e.subj)]
         res = evaluate(evals, model, prefix_fwd, prefix_rev, **kwargs)

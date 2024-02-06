@@ -869,7 +869,7 @@ class BaseEditor:
                     exec_time = time() - start
                     # LOG.info(f"Execution {i} editing took {exec_time}")
 
-                    start = time()
+                    # start = time()
                     # all_metrics[i].update({
                     #     'case_id': i,
                     #     "requested_rewrite": request,
