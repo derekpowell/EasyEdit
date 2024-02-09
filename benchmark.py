@@ -26,18 +26,21 @@ from contextlib import redirect_stdout
 
 device = torch.device("cuda")
 
+
 ## --- load data
+
+def load_result(filename):
+    x = pd.read_csv(filename, converters={'fwd_choices':literal_eval, 'rev_choices':literal_eval})
+    return(x)
 
 baseline_df, edits_df, eval_df = load_data()
 
-prefix_fwd, prefix_rev = load_prefixes(verbose = False)
+prefix_fwd, prefix_rev, prefix_single = load_prefixes(verbose = False)
+
+baseline_df =  baseline_df.loc[lambda x: (x.token_type == "entity") | (x.property == "category_membership")]
 
 ## --- set up test mode (or not)
-MODE = "testing" #"testing"
-if MODE=="testing":
-    import random
-    random.seed(123)
-    edits_df = edits_df.sample(100)
+MODE_ARGS = ["sampling", "read_baseline"] # []
 
 ## -- set up models and do edits with different methods
 
@@ -50,15 +53,53 @@ hparam_config["FT"] = {"HyperParams": FTHyperParams, "path": 'hparams/FT/llama-7
 # hparam_config["PMET"] = {"HyperParams": PMETHyperParams, "path": 'hparams/PMET/llama-7b.yaml', "edit_method": "PMET"} # broken
 # hparam_config["GRACE"] = {"HyperParams": GraceHyperParams, "path": 'hparams/GRACE/llama-7B.yaml', "edit_method": "GRACE"} # broken
 
+if "testing" not in MODE_ARGS:
+    if "read_baseline" not in MODE_ARGS:
+        print("\n\n... estimating baseline performance ...\n\n")
+        hparams = FTHyperParams.from_hparams('hparams/FT/llama-7b.yaml')
+        edited_model = EditedModel(hparams, auth_token())
+        results_baseline = evaluate(baseline_df, edited_model, prefix_fwd = "", prefix_rev = "", normalization = None)
+        results_baseline.to_csv("results/csv/" + hparams.model_name.replace("/", "-") + "-baseline" +  ".csv", index=False)
+    else:
+        print("\n\n... reading in baseline performance ...\n\n")
+        results_baseline = load_result("results/csv/meta-llama-Llama-2-7b-hf-baseline.csv")
+
+    # do joins to get edits/evals that are relevant for specific model
+    edits_df, eval_df = filter_edits_evals(results_baseline, edits_df, eval_df)
+
+
+if "sampling" in MODE_ARGS:
+    import random
+    random.seed(123)
+    edits_df = edits_df.sample(100) # edits_df = edits_df.loc[lambda x: x.edit_type == "category property"].iloc[:1]
+
+print("\n\n ... editing and evaluating for ...")
+print(len(edits_df), " edits\n\n")
 
 for edit_method, HPARAMS in hparam_config.items():    
 
     hparams = HPARAMS["HyperParams"].from_hparams(HPARAMS["path"])
     
-    # with OutputLogger("my_log", "INFO") as redirector:
-    edited_model = EditedModel(hparams, auth_token())
-    res = edit_and_evaluate(edits_df, eval_df, edited_model, edit_method, prefix_fwd = "", prefix_rev = "", log_file = "results/log-2024-02-05.txt")
+    if "testing" in MODE_ARGS:
+        print("dataset testing mode ...")
+        res = test_dataset(edits_df, eval_df, None)
+        print(res.agg(fwd=('corr_fwd_answers', 'mean'), rev=('corr_rev_answers', 'mean')))
     
-    res.to_csv("results/csv/" + hparams.model_name.replace("/", "-") + "-" + edit_method +  ".csv")
+    else:
+        print("... estimating edit performance for: ", edit_method, "\n\n" )
+        
+        edited_model = EditedModel(hparams, auth_token())
 
-    results[HPARAMS["edit_method"]] = res
+        res = edit_and_evaluate(
+            edits_df, 
+            eval_df, 
+            edited_model, 
+            edit_method, 
+            prefix_fwd = "", 
+            prefix_rev = "", 
+            log_file = "results/log-2024-02-09-test1.txt"
+            )
+    
+        res.to_csv("results/csv/" + hparams.model_name.replace("/", "-") + "-" + edit_method +  ".csv", index=False)
+
+        results[HPARAMS["edit_method"]] = res
