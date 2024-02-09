@@ -437,7 +437,7 @@ def filter_evals(baseline_result, edits_df, eval_df):
     
     category_property_evals = eval_df.loc[lambda x: (x.entity.isin(corr_memberships.entity) & (x.edit_type == "category property"))]
 
-    corr_properties = baseline_result.loc[lambda x:(x.correct_fwd) | (x.property.str.starts_with("category_membership"))]
+    corr_properties = baseline_result.loc[lambda x:(x.correct_fwd) | (x.property.str.startswith("category_membership"))]
     # join w/ edits/evals on corr_properties.subj = eval_df.entity and property=property
     # when editing whether a dog is a cow, only test on properties it knew cows have
     # and only test "unchanged" properties it knew dogs have
