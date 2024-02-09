@@ -47,9 +47,9 @@ MODE_ARGS = ["sampling", "read_baseline"] # []
 hparam_config = dict()
 results = dict()
 
-hparam_config["ROME"] = {"HyperParams": ROMEHyperParams, "path": 'hparams/ROME/llama-7b.yaml', "edit_method": "ROME"}
 hparam_config["ICE"] = {"HyperParams": ROMEHyperParams, "path": 'hparams/ROME/llama-7b.yaml', "edit_method": "ICE"}
 hparam_config["FT"] = {"HyperParams": FTHyperParams, "path": 'hparams/FT/llama-7b.yaml', "edit_method": "FT"}
+hparam_config["ROME"] = {"HyperParams": ROMEHyperParams, "path": 'hparams/ROME/llama-7b.yaml', "edit_method": "ROME"}
 # hparam_config["PMET"] = {"HyperParams": PMETHyperParams, "path": 'hparams/PMET/llama-7b.yaml', "edit_method": "PMET"} # broken
 # hparam_config["GRACE"] = {"HyperParams": GraceHyperParams, "path": 'hparams/GRACE/llama-7B.yaml', "edit_method": "GRACE"} # broken
 
@@ -82,7 +82,7 @@ for edit_method, HPARAMS in hparam_config.items():
     
     if "testing" in MODE_ARGS:
         print("dataset testing mode ...")
-        res = test_dataset(edits_df, eval_df, None)
+        res = test_dataset(edits_df, eval_df, None, edit_method = "ICE")
         print(res.agg(fwd=('corr_fwd_answers', 'mean'), rev=('corr_rev_answers', 'mean')))
     
     else:

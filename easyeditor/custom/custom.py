@@ -352,17 +352,21 @@ def test_dataset(edits_df, eval_df, model, edit_method=None, prefix_fwd = "", pr
         elif e.edit_type == "category property":
             if edit_method in ["ROME", "FT", "PMET", "GRACE"]:
                 rewrite_prompt = e.query_fwd.replace("<subj>", e.entity).replace("<answer>", e.answer_fwd)
+               
                 rewrite = {
                     'prompts': [rewrite_prompt],
                     'target_new': [e.answer_fwd], #{'str': e.entity},
                     'subject': [e.entity]
                 }
+
+                print(rewrite)
                 # metrics = model.edit(rewrite, log_file  = log_file)
                 # full_metrics.append(metrics)
 
             elif edit_method == "ICE":
                 
                 rewrite_prompt = e.query_fwd.replace("<subj>", e.entity).replace("<answer>", e.answer_fwd)
+                print(f"Imagine that {rewrite_prompt} ...\n\n")
                 # model.edit({"preprompt": f"Imagine that {rewrite_prompt} ...\n\n"}) # and not a kind of {e.orig_entity}    
 
             evals = eval_df.loc[lambda x: (x.edit_type == "category property") & (x.entity == e.entity) & (x.property == e.property)]
@@ -433,7 +437,7 @@ def filter_evals(baseline_result, edits_df, eval_df):
     
     category_property_evals = eval_df.loc[lambda x: (x.entity.isin(corr_memberships.entity) & (x.edit_type == "category property"))]
 
-    corr_properties = baseline_result.loc[lambda x: x.property!="category_membership"].loc[lambda x: x.correct_fwd]
+    corr_properties = baseline_result.loc[lambda x:(x.correct_fwd) | (x.property.str.starts_with("category_membership"))]
     # join w/ edits/evals on corr_properties.subj = eval_df.entity and property=property
     # when editing whether a dog is a cow, only test on properties it knew cows have
     # and only test "unchanged" properties it knew dogs have
