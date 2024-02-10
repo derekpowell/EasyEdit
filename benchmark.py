@@ -40,7 +40,7 @@ prefix_fwd, prefix_rev, prefix_single = load_prefixes(verbose = False)
 baseline_df =  baseline_df.loc[lambda x: (x.token_type == "entity") | (x.property == "category_membership")]
 
 ## --- set up test mode (or not)
-MODE_ARGS = ["sampling", "read_baseline"] # []
+MODE_ARGS = ["read_baseline"] # []
 
 ## -- set up models and do edits with different methods
 
@@ -97,7 +97,7 @@ for edit_method, HPARAMS in hparam_config.items():
             edit_method, 
             prefix_fwd = "", 
             prefix_rev = "", 
-            log_file = "results/log-2024-02-09-test1.txt"
+            log_file = "results/log-2024-02-09-full1.txt"
             )
     
         res.to_csv("results/csv/" + hparams.model_name.replace("/", "-") + "-" + edit_method +  ".csv", index=False)
