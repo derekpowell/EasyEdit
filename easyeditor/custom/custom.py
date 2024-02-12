@@ -295,7 +295,7 @@ def edit_and_evaluate(edits_df, eval_df, model, edit_method, metrics = False, lo
 
         elif e.edit_type == "category property":
             if edit_method in ["ROME", "FT", "PMET", "GRACE"]:
-                rewrite_prompt = e.query_fwd.replace("<subj>", e.entity).replace("<answer>", e.answer_fwd)
+                rewrite_prompt = e.query_fwd.replace("<subj>", e.entity).replace(" <answer>", "")
                 rewrite = {
                     'prompts': [rewrite_prompt],
                     'target_new': [e.answer_fwd], #{'str': e.entity},

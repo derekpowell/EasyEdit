@@ -27,6 +27,10 @@ from contextlib import redirect_stdout
 device = torch.device("cuda")
 
 
+## --- set up test mode (or not)
+MODE_ARGS = ["read_baseline", "catmem_only"] # []
+
+
 ## --- load data
 
 def load_result(filename):
@@ -39,8 +43,16 @@ prefix_fwd, prefix_rev, prefix_single = load_prefixes(verbose = False)
 
 baseline_df =  baseline_df.loc[lambda x: (x.token_type == "entity") | (x.property == "category_membership")]
 
-## --- set up test mode (or not)
-MODE_ARGS = ["read_baseline"] # []
+
+if "catprop_only" in MODE_ARGS:
+    print("====== category property edits only ! ======")
+    edits_df = edits_df.loc[lambda x: x.edit_type == "category property"]
+    eval_df = eval_df.loc[lambda x: x.edit_type == "category property"]
+
+elif "catmem_only" in MODE_ARGS:
+    print(" ====== category membership edits only! =======")
+    edits_df = edits_df.loc[lambda x: x.edit_type == "category membership"]
+    eval_df = eval_df.loc[lambda x: x.edit_type == "category membership"]
 
 ## -- set up models and do edits with different methods
 
@@ -64,14 +76,15 @@ if "testing" not in MODE_ARGS:
         print("\n\n... reading in baseline performance ...\n\n")
         results_baseline = load_result("results/csv/meta-llama-Llama-2-7b-hf-baseline.csv")
 
-    # do joins to get edits/evals that are relevant for specific model
-    edits_df, eval_df = filter_edits_evals(results_baseline, edits_df, eval_df)
+    # do joins to get edits/evals that are relevant for specific model'
+    # don't do this here, test for all but then can filter results later
+    # edits_df, eval_df = filter_edits_evals(results_baseline, edits_df, eval_df)
 
 
 if "sampling" in MODE_ARGS:
     import random
     random.seed(123)
-    edits_df = edits_df.sample(100) # edits_df = edits_df.loc[lambda x: x.edit_type == "category property"].iloc[:1]
+    edits_df = edits_df.sample(10) # edits_df = edits_df.loc[lambda x: x.edit_type == "category property"].iloc[:1]
 
 print("\n\n ... editing and evaluating for ...")
 print(len(edits_df), " edits\n\n")
@@ -97,9 +110,9 @@ for edit_method, HPARAMS in hparam_config.items():
             edit_method, 
             prefix_fwd = "", 
             prefix_rev = "", 
-            log_file = "results/log-2024-02-09-full1.txt"
+            log_file = "results/log-catmem-2024-02-12.txt"
             )
     
-        res.to_csv("results/csv/" + hparams.model_name.replace("/", "-") + "-" + edit_method +  ".csv", index=False)
+        res.to_csv("results/csv/" + hparams.model_name.replace("/", "-") + "-" + edit_method +  "catmem-full.csv", index=False)
 
         results[HPARAMS["edit_method"]] = res
