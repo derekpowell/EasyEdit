@@ -28,8 +28,7 @@ device = torch.device("cuda")
 
 
 ## --- set up test mode (or not)
-MODE_ARGS = ["read_baseline", "catmem_only"] # []
-
+MODE_ARGS = ["catmem_only"] # []
 
 ## --- load data
 
@@ -41,7 +40,7 @@ baseline_df, edits_df, eval_df = load_data()
 
 prefix_fwd, prefix_rev, prefix_single = load_prefixes(verbose = False)
 
-baseline_df =  baseline_df.loc[lambda x: (x.token_type == "entity") | (x.property == "category_membership")]
+# baseline_df =  baseline_df.loc[lambda x: (x.token_type == "entity") | (x.property == "category_membership")]
 
 
 if "catprop_only" in MODE_ARGS:
@@ -59,9 +58,9 @@ elif "catmem_only" in MODE_ARGS:
 hparam_config = dict()
 results = dict()
 
+hparam_config["ROME"] = {"HyperParams": ROMEHyperParams, "path": 'hparams/ROME/llama-7b.yaml', "edit_method": "ROME"}
 hparam_config["ICE"] = {"HyperParams": ROMEHyperParams, "path": 'hparams/ROME/llama-7b.yaml', "edit_method": "ICE"}
 hparam_config["FT"] = {"HyperParams": FTHyperParams, "path": 'hparams/FT/llama-7b.yaml', "edit_method": "FT"}
-hparam_config["ROME"] = {"HyperParams": ROMEHyperParams, "path": 'hparams/ROME/llama-7b.yaml', "edit_method": "ROME"}
 # hparam_config["PMET"] = {"HyperParams": PMETHyperParams, "path": 'hparams/PMET/llama-7b.yaml', "edit_method": "PMET"} # broken
 # hparam_config["GRACE"] = {"HyperParams": GraceHyperParams, "path": 'hparams/GRACE/llama-7B.yaml', "edit_method": "GRACE"} # broken
 
@@ -110,7 +109,7 @@ for edit_method, HPARAMS in hparam_config.items():
             edit_method, 
             prefix_fwd = "", 
             prefix_rev = "", 
-            log_file = "results/log-catmem-2024-02-12.txt"
+            log_file = "results/log-catmem-2024-02-12-b.txt"
             )
     
         res.to_csv("results/csv/" + hparams.model_name.replace("/", "-") + "-" + edit_method +  "catmem-full.csv", index=False)
