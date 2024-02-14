@@ -859,7 +859,7 @@ class BaseEditor:
                     edited_model, weights_copy = self.apply_algo(
                         self.model,
                         self.tok,
-                        [request],
+                        [request] if type(request)==dict else request,
                         self.hparams,
                         copy=False,
                         return_orig_weights=True,
@@ -907,3 +907,91 @@ class BaseEditor:
                 #     json.dump(metrics, f, indent=1)
 
             return all_metrics, edited_model, weights_copy
+    
+
+
+    def pure_batch_edit(self,
+                   requests: List[dict],
+                #    target_new: List[str],
+                   ground_truth: Optional[List[str]] = None,
+                   rephrase_prompts: Optional[List[str]] = None,
+                   locality_prompts: Optional[List[str]] = None,
+                   locality_ground_truth: Optional[List[str]] = None,
+                   keep_original_weight=False,
+                   verbose=True,
+                   **kwargs
+                   ):
+        """
+        `prompts`: list or str
+            the prompts to edit
+        `ground_truth`: str
+            the ground truth / expected output
+        """
+        # assert len(prompts) == len(target_new)
+        test_generation = kwargs['test_generation'] if 'test_generation' in kwargs.keys() else False
+        if ground_truth is not None:
+            if isinstance(ground_truth, str):
+                ground_truth = [ground_truth,]
+            else:
+                assert len(ground_truth) == len(requests)
+        else: # Default ground truth is <|endoftext|>
+            ground_truth = ['<|endoftext|>' for _ in range(len(requests))]
+
+
+        assert BatchEditor.is_batchable_method(self.alg_name) \
+               or print(f'The Method {self.alg_name} can not batch edit examples.')
+
+        # requests = self._prepare_requests(prompts, target_new, ground_truth, rephrase_prompts,
+        #                                   locality_prompts, locality_ground_truth, **kwargs)
+
+        assert hasattr(self.hparams, 'batch_size') or \
+               print(f'Method {self.alg_name} found, pls specify the batch_size....')
+        # print("Batch size = ", self.hparams.batch_size)
+
+        all_metrics = []
+        
+        for record_chunks in self._chunks(requests, len(requests)):
+            # start = time()
+
+            edited_model, weights_copy = self.apply_algo(
+                self.model,
+                self.tok,
+                record_chunks,
+                self.hparams,
+                copy=False,
+                return_orig_weights=True,
+                keep_original_weight=keep_original_weight,
+            )
+            # exec_time = time() - start
+            # LOG.info(f"Execution editing took {exec_time}")
+
+            # start = time()
+            # all_metrics = []
+            # for i, request in enumerate(record_chunks):
+
+            #     metrics = {
+            #         'case_id': i,
+            #         "requested_rewrite": request,
+            #         "time": exec_time,
+            #         "post": compute_edit_quality(edited_model, self.model_name, self.hparams, self.tok, request, self.hparams.device, test_generation=test_generation),
+            #     }
+
+            #     all_metrics.append(metrics)
+
+            # with torch.no_grad():
+            #     for k, v in weights_copy.items():
+            #         nethook.get_parameter(self.model, k)[...] = v.to(f"cuda:{self.hparams.device}")
+
+            # for i, request in enumerate(record_chunks):
+            #     all_metrics[i]["pre"] = compute_edit_quality(self.model, self.model_name, self.hparams, self.tok, request, self.hparams.device, test_generation=test_generation)
+
+            #     if verbose:
+            #         LOG.info(
+            #             f"{i} editing: {request['prompt']} -> {request['target_new']}  \n {all_metrics[i]}"
+            #         )
+
+            # LOG.info(f"Evaluation took {time() - start}")
+
+        return all_metrics, edited_model, weights_copy
+
+    

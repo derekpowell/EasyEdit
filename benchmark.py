@@ -28,7 +28,7 @@ device = torch.device("cuda")
 
 
 ## --- set up test mode (or not)
-MODE_ARGS = ["catmem_only"] # []
+MODE_ARGS = ["catmem_only", "read_baseline", "sampling"] # []
 
 ## --- load data
 
@@ -58,9 +58,11 @@ elif "catmem_only" in MODE_ARGS:
 hparam_config = dict()
 results = dict()
 
-hparam_config["ROME"] = {"HyperParams": ROMEHyperParams, "path": 'hparams/ROME/llama-7b.yaml', "edit_method": "ROME"}
-hparam_config["ICE"] = {"HyperParams": ROMEHyperParams, "path": 'hparams/ROME/llama-7b.yaml', "edit_method": "ICE"}
-hparam_config["FT"] = {"HyperParams": FTHyperParams, "path": 'hparams/FT/llama-7b.yaml', "edit_method": "FT"}
+# hparam_config["ROME"] = {"HyperParams": ROMEHyperParams, "path": 'hparams/ROME/llama-7b.yaml', "edit_method": "ROME"}
+hparam_config["MEMIT"] = {"HyperParams": MEMITHyperParams, "path": 'hparams/MEMIT/llama-7b.yaml', "edit_method": "MEMIT"}
+# hparam_config["ICE"] = {"HyperParams": ROMEHyperParams, "path": 'hparams/ROME/llama-7b.yaml', "edit_method": "ICE"}
+# hparam_config["FT"] = {"HyperParams": FTHyperParams, "path": 'hparams/FT/llama-7b.yaml', "edit_method": "FT"}
+# hparam_config["BASE"] = {"HyperParams": ROMEHyperParams, "path": 'hparams/ROME/llama-7b.yaml', "edit_method": "BASE"}
 # hparam_config["PMET"] = {"HyperParams": PMETHyperParams, "path": 'hparams/PMET/llama-7b.yaml', "edit_method": "PMET"} # broken
 # hparam_config["GRACE"] = {"HyperParams": GraceHyperParams, "path": 'hparams/GRACE/llama-7B.yaml', "edit_method": "GRACE"} # broken
 
@@ -82,8 +84,8 @@ if "testing" not in MODE_ARGS:
 
 if "sampling" in MODE_ARGS:
     import random
-    random.seed(123)
-    edits_df = edits_df.sample(10) # edits_df = edits_df.loc[lambda x: x.edit_type == "category property"].iloc[:1]
+    random.seed(456)
+    edits_df = edits_df.sample(20) # edits_df = edits_df.loc[lambda x: x.edit_type == "category property"].iloc[:1]
 
 print("\n\n ... editing and evaluating for ...")
 print(len(edits_df), " edits\n\n")
@@ -109,9 +111,9 @@ for edit_method, HPARAMS in hparam_config.items():
             edit_method, 
             prefix_fwd = "", 
             prefix_rev = "", 
-            log_file = "results/log-catmem-2024-02-12-b.txt"
+            log_file = "results/log-catmem-2024-02-13-memit-tests.txt"
             )
     
-        res.to_csv("results/csv/" + hparams.model_name.replace("/", "-") + "-" + edit_method +  "catmem-full.csv", index=False)
+        res.to_csv("results/csv/" + hparams.model_name.replace("/", "-") + "-" + edit_method +  "catmem-sample-batched.csv", index=False)
 
         results[HPARAMS["edit_method"]] = res

@@ -3,6 +3,7 @@ from ..models.rome import ROMEHyperParams
 from ..models.ft import FTHyperParams
 from ..models.pmet import PMETHyperParams
 from ..models.grace import GraceHyperParams
+from ..models.memit import MEMITHyperParams
 
 from ..util import nethook
 
@@ -14,6 +15,8 @@ import pandas as pd
 
 from contextlib import redirect_stdout
 import sys
+
+from tqdm import tqdm
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -62,6 +65,8 @@ class EditedModel:
         if "preprompt" in rewrite: # this is a little hacky
             self.preprompt = rewrite["preprompt"]
             return None
+        
+        # elif type(rewrite) == dict:
         else:
             with redirect_stdout(h): # None
                 metrics, self.model, self.saved_weights = self.editor.pure_edit( # pure_edit
@@ -70,6 +75,20 @@ class EditedModel:
                     keep_original_weight = True,
                     verbose = False
                 )
+        # elif type(rewrite)==list:
+
+        #     # prompts = [x['prompts'] for x in rewrite]
+        #     # target_new = [x['target_new'] for x in rewrite]
+
+        #     with redirect_stdout(h): # None
+        #         metrics, self.model, self.saved_weights = self.editor.pure_edit( # pure_edit
+        #             rewrite,
+        #             # target_new,
+        #             # **kwargs,
+        #             keep_original_weight = True,
+        #             verbose = False
+        #         )
+        
 
         return metrics
     
@@ -78,7 +97,11 @@ class EditedModel:
 
         self.preprompt = ""
         
-        if self.saved_weights and self.saved_weights != {}:
+        if self.saved_weights == {}:
+            print (print(f"No model weights to restore: saved_weights is empty dict"))
+
+        elif self.saved_weights:
+
             try:
                 with torch.no_grad():
                     for k, v in self.saved_weights.items():
@@ -273,45 +296,95 @@ def evaluate(evaluation_data, model, prefix_fwd = "", prefix_rev = "", normaliza
     return(results)
 
 
+def make_edit_batches(df):
+    df2 = df.copy()
+    batches = []
+    while df2.shape[0] > 0:
+        batch = df2.groupby(["entity"]).sample(1)
+        batches.append(batch)
+        df2 = df2.loc[lambda x: ~x.edit.isin(batch.edit)]
+
+    return(batches)
+
+
+def make_rewrite(e):
+    rewrite = {
+            'prompt': f'A {e.subj} is a kind of',
+            'target_new': e.entity, #{'str': e.entity},
+            'subject': e.subj
+            }
+    
+    return(rewrite)
+
+
 def edit_and_evaluate(edits_df, eval_df, model, edit_method, metrics = False, log_file = None, **kwargs):
     
     full_results = pd.DataFrame()
     full_metrics = []
+    print("===== Editing and evaluating =====")
 
-    for e in edits_df.itertuples():
-        if e.edit_type == "category membership":
-            if edit_method in ["ROME", "FT", "PMET", "GRACE"]:
-                rewrite = {
-                        'prompts': [f'A {e.subj} is a kind of'],
-                        'target_new': [e.entity], #{'str': e.entity},
-                        'subject': [e.subj]
-                        }
-                metrics = model.edit(rewrite, log_file  = log_file)
-                full_metrics.append(metrics)
-            elif edit_method == "ICE":
-                model.edit({"preprompt": f"Imagine that a {e.subj} is a kind of {e.entity} ...\n\n"}) # and not a kind of {e.orig_entity}
+    if edit_method in ["MEMIT", "PMET"]:
+        print("making batches ...")
+
+        batches = make_edit_batches(edits_df)
+        print("editing in batches ...")
+        for b in tqdm(batches):
             
-            evals = eval_df.loc[lambda x: (x.edit_type == "category membership") & (x.entity == e.entity) & (x.subj == e.subj)]
+            rewrites = b.apply(make_rewrite, 1).to_list()
 
-        elif e.edit_type == "category property":
-            if edit_method in ["ROME", "FT", "PMET", "GRACE"]:
-                rewrite_prompt = e.query_fwd.replace("<subj>", e.entity).replace(" <answer>", "")
-                rewrite = {
-                    'prompts': [rewrite_prompt],
-                    'target_new': [e.answer_fwd], #{'str': e.entity},
-                    'subject': [e.entity]
-                }
-                metrics = model.edit(rewrite, log_file  = log_file)
-                full_metrics.append(metrics)
+            rewrites = {"prompts": [x["prompt"] for x in rewrites], "target_new": [x["target_new"] for x in rewrites], "subject": [x["subject"] for x in rewrites] }
+            
+            metrics = model.edit(rewrites, log_file  = log_file)
 
-            elif edit_method == "ICE":
+            evals = b.filter(["edit"]).merge(eval_df, how = "left", on = "edit")
+            
+            res = evaluate(evals, model, **kwargs)
+            
+            model.restore()
+
+            full_results = pd.concat([full_results, res])
+    else:
+
+        for e in tqdm(edits_df.itertuples(),  total = edits_df.shape[0]):
+            if e.edit_type == "category membership":
+                if edit_method in ["ROME", "FT", "GRACE"]:
+                    rewrite = {
+                            'prompts': [f'A {e.subj} is a kind of'],
+                            'target_new': [e.entity], #{'str': e.entity},
+                            'subject': [e.subj]
+                            }
+                    metrics = model.edit(rewrite, log_file  = log_file)
+                    full_metrics.append(metrics)
+                elif edit_method == "ICE":
+                    model.edit({"preprompt": f"Imagine that a {e.subj} is a kind of {e.entity} ...\n\n"}) # and not a kind of {e.orig_entity}
+                    
+                elif edit_method == "BASE":
+                    model.edit({"preprompt": ""})
+
                 
-                rewrite_prompt = e.query_fwd.replace("<subj>", e.entity).replace("<answer>", e.answer_fwd)
-                model.edit({"preprompt": f"Imagine that {rewrite_prompt} ...\n\n"}) # and not a kind of {e.orig_entity}    
 
-            evals = eval_df.loc[lambda x: (x.edit_type == "category property") & (x.entity == e.entity) & (x.property == e.property)]
-        
-        res = evaluate(evals, model, **kwargs)
+                
+                evals = eval_df.loc[lambda x: (x.edit_type == "category membership") & (x.entity == e.entity) & (x.subj == e.subj)]
+
+            elif e.edit_type == "category property":
+                if edit_method in ["ROME", "FT", "PMET", "GRACE"]:
+                    rewrite_prompt = e.query_fwd.replace("<subj>", e.entity).replace(" <answer>", "")
+                    rewrite = {
+                        'prompts': [rewrite_prompt],
+                        'target_new': [e.answer_fwd], #{'str': e.entity},
+                        'subject': [e.entity]
+                    }
+                    metrics = model.edit(rewrite, log_file  = log_file)
+                    full_metrics.append(metrics)
+
+                elif edit_method == "ICE":
+                    
+                    rewrite_prompt = e.query_fwd.replace("<subj>", e.entity).replace("<answer>", e.answer_fwd)
+                    model.edit({"preprompt": f"Imagine that {rewrite_prompt} ...\n\n"}) # and not a kind of {e.orig_entity}    
+
+                evals = eval_df.loc[lambda x: (x.edit_type == "category property") & (x.entity == e.entity) & (x.property == e.property)]
+            
+            res = evaluate(evals, model, **kwargs)
         
         model.restore()
 
