@@ -320,6 +320,7 @@ def make_rewrite(e):
 def edit_and_evaluate(edits_df, eval_df, model, edit_method, metrics = False, log_file = None, **kwargs):
     
     full_results = pd.DataFrame()
+    result_list = []
     full_metrics = []
     print("===== Editing and evaluating =====")
 
@@ -361,9 +362,7 @@ def edit_and_evaluate(edits_df, eval_df, model, edit_method, metrics = False, lo
                 elif edit_method == "BASE":
                     model.edit({"preprompt": ""})
 
-                
 
-                
                 evals = eval_df.loc[lambda x: (x.edit_type == "category membership") & (x.entity == e.entity) & (x.subj == e.subj)]
 
             elif e.edit_type == "category property":
@@ -382,23 +381,19 @@ def edit_and_evaluate(edits_df, eval_df, model, edit_method, metrics = False, lo
                     rewrite_prompt = e.query_fwd.replace("<subj>", e.entity).replace("<answer>", e.answer_fwd)
                     model.edit({"preprompt": f"Imagine that {rewrite_prompt} ...\n\n"}) # and not a kind of {e.orig_entity}    
 
-                evals = eval_df.loc[lambda x: (x.edit_type == "category property") & (x.entity == e.entity) & (x.property == e.property)]
+                evals = eval_df.loc[lambda x: (x.edit == e.edit)]
             
-            res = evaluate(evals, model, **kwargs)
+            result = evaluate(evals, model, **kwargs)
+            result_list.append(result)
         
         model.restore()
 
-        full_results = pd.concat([full_results, res])
+    
+    full_results = pd.concat(result_list)    
 
     full_results["edit_method"] = edit_method
     
     return(full_results)
-    
-    # if not metrics:
-        # return(full_results)
-    
-    # else:
-        # return(full_results, metrics)
 
 
 
