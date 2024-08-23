@@ -4,6 +4,7 @@ from ..models.ft import FTHyperParams
 from ..models.pmet import PMETHyperParams
 from ..models.grace import GraceHyperParams
 from ..models.memit import MEMITHyperParams
+from ..models.lora import LoRAHyperParams
 
 from ..util import nethook
 
@@ -97,9 +98,11 @@ class EditedModel:
 
         self.preprompt = ""
         
-        if self.saved_weights == {}:
-            print (print(f"No model weights to restore: saved_weights is empty dict"))
-
+        if self.params.alg_name == "LoRA":
+            self.model = self.model.unload()
+            # delattr(self.model, "peft_config")
+            # self.model.delete_adapter('default')
+        
         elif self.saved_weights:
 
             try:
@@ -110,6 +113,11 @@ class EditedModel:
                 # print("Original model restored")
             except NameError as e:
                 print(f"No model weights to restore: {e}")
+
+        elif self.saved_weights == {}:
+            print (print(f"No model weights to restore: saved_weights is empty dict"))
+
+        return None
 
             
     def generate_text(self, texts, **kwargs):
@@ -133,7 +141,8 @@ class EditedModel:
         return(generated_texts)
     
     
-    def logprobs(self, texts):
+    def logits(self, texts):
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
         texts = self.preprompt + texts if type(texts)==str else [self.preprompt + t for t in texts]
     
@@ -144,37 +153,50 @@ class EditedModel:
         with torch.no_grad():
             model_out = model(encoding["input_ids"])
             logits = model_out.logits
-            logprobs = F.log_softmax(logits, -1)
         
-        return {"tokens": encoding, "logprobs": logprobs}
-
+        return {"tokens": encoding, "logits": logits}
     
+    
+    def logprobs(self, texts):
+        
+        logits = self.logits(texts)
+        
+        return {"tokens": logits['tokens'], "logprobs": F.log_softmax(logits['logits'], -1)}
+    
+    
+    def obs_logits(self, text):
+    
+        x = self.logits(text)
+        logits = x['logits']
+        
+        obslogits = []
+
+        if type(text) is str:
+            tok_idx = x['tokens']['input_ids'].squeeze()
+            logits = x['logits']
+            obslogits = logits[0, :, tok_idx[1:]].squeeze().diag()
+
+        elif type(text) is list:
+            for i in range(len(text)):
+                tok_idx = x['tokens']['input_ids'][i].squeeze()
+                mask = x['tokens']['attention_mask'][i] > 0
+                
+                obslogits.append(logits[0, :, tok_idx[1:]].squeeze().diag()[mask[1:]])
+
+        return obslogits
+
+
+    def obs_logprobs(self, text):
+        logits = self.obs_logits(text)
+
+        return [F.log_softmax(l, -1) for l in logits] if type(logits)==list else F.log_softmax(logits, -1)
+        
+       
     def completion_logprob(self, text, completion, start_ind = None):
         
         '''
         Compute model log probability of completion substring. Returns single value tensor. Takes only one text string.
         '''
-        
-        # texts = self.preprompt + text
-    
-        # tokenizer = self.tok 
-        # model = self.model
-        # encoding = tokenizer(texts, padding=True, return_tensors='pt').to(device)
-
-        # with torch.no_grad():
-        #     model_out = model(encoding["input_ids"])
-        #     logits = model_out.logits
-        #     logprobs = F.log_softmax(logits, -1)
-
-        # token_id = encode_token(completion, tokenizer)
-        # start_ind = -len(token_id)-1 if not start_ind else start_ind
-        
-        # l = logprobs[:, start_ind:-1, token_id]
-        # if len(l.squeeze().shape) == 0:
-        #     return(l.squeeze())
-        # else:
-        #     return(l.squeeze().diag().sum())
-        
 
         return self.substring_logprobs(text, completion)[0][-1]
         
@@ -348,7 +370,7 @@ def edit_and_evaluate(edits_df, eval_df, model, edit_method, metrics = False, lo
 
         for e in tqdm(edits_df.itertuples(),  total = edits_df.shape[0]):
             if e.edit_type == "category membership":
-                if edit_method in ["ROME", "FT", "GRACE"]:
+                if edit_method in ["ROME", "FT", "GRACE", "LoRA"]:
                     rewrite = {
                             'prompts': [f'A {e.subj} is a kind of'],
                             'target_new': [e.entity], #{'str': e.entity},
@@ -366,7 +388,7 @@ def edit_and_evaluate(edits_df, eval_df, model, edit_method, metrics = False, lo
                 evals = eval_df.loc[lambda x: (x.edit_type == "category membership") & (x.entity == e.entity) & (x.subj == e.subj)]
 
             elif e.edit_type == "category property":
-                if edit_method in ["ROME", "FT", "PMET", "GRACE"]:
+                if edit_method in ["ROME", "FT", "PMET", "GRACE", "LoRA"]:
                     rewrite_prompt = e.query_fwd.replace("<subj>", e.entity).replace(" <answer>", "")
                     rewrite = {
                         'prompts': [rewrite_prompt],
