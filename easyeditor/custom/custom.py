@@ -98,10 +98,9 @@ class EditedModel:
 
         self.preprompt = ""
         
-        if self.params.alg_name == "LoRA":
+        if self.params.alg_name in ["LoRA", 'LoRA2']:
             self.model = self.model.unload()
-            # delattr(self.model, "peft_config")
-            # self.model.delete_adapter('default')
+            delattr(self.model, "peft_config")
         
         elif self.saved_weights:
 
